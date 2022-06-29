@@ -7,10 +7,12 @@ import java.util.Optional;
 import java.util.Random;
 
 import javax.mail.MessagingException;
+import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.dream.filler.tracker.entity.Role;
 import com.dream.filler.tracker.entity.UserInfo;
@@ -22,14 +24,15 @@ import com.dream.filler.tracker.repository.UserInfoRepository;
 import com.dream.filler.tracker.repository.UserPasscodeRepository;
 import com.dream.filler.tracker.util.Constants;
 import com.dream.filler.tracker.util.TrackerUtils;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import antlr.collections.List;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class UserManagementService {
-
 
 	@Autowired
 	private UserInfoRepository userInfoRepository;
@@ -43,33 +46,34 @@ public class UserManagementService {
 	@Autowired
 	private UserPasscodeRepository userPasscodeRepository;
 
-	
 	public UserInfo registerUserByRegistrationType(UserInfo userInfo) throws RoleException, UserException,
-	MessagingException, com.fasterxml.jackson.core.JsonParseException, JsonMappingException, IOException {
-
-		if (null != userInfo.getRegistrationType()
-				&& userInfo.getRegistrationType().trim().equals(Constants.REGTYPE_ADMIN)) {
-			return this.registerUser(userInfo);
-		} else {
-			throw new UserException(Constants.INVALID_REGISTRATIONTYPE);
-		}
-	}
-
-	public UserInfo registerUser(UserInfo userInfo) throws RoleException, UserException, MessagingException,
-	com.fasterxml.jackson.core.JsonParseException, JsonMappingException, IOException {
-		String userEmailId = userInfo.getEmailId();
-		String passcode = "";
+	MessagingException, JsonParseException, JsonMappingException, IOException {
+		String role=userInfo.getRegistrationType();
 		
+		if (null == role) {
+			throw new RoleException("please select appropriate role");
+		}
+		
+		Role checkRole=roleRepository.findByRole(role);
+
+		if (checkRole == null) {
+			throw new RoleException(Constants.ROLE_NOT_FOUND);
+		}else {
+			userInfo.setRole(roleRepository.findByRole(role));
+			return this.registerUser(userInfo);
+		}
+
+	}
+	public UserInfo registerUser(@Valid UserInfo userInfo) throws RoleException, UserException, MessagingException,
+			com.fasterxml.jackson.core.JsonParseException, JsonMappingException, IOException { 
+		String userEmailId = userInfo.getEmailId();
+
+		String passcode = "";
+
 		String fAndlName = TrackerUtils.firstLetterCapital(userInfo.getFirstName()) + " "
 				+ TrackerUtils.firstLetterCapital(userInfo.getLastName());
-		
+
 		UserInfo userInfoDB = userInfoRepository.findByEmailId(userEmailId);
-
-		Role role = roleRepository.findByRole(Constants.ROLE_USER);
-		if (role == null) {
-			throw new RoleException(Constants.ROLE_NOT_FOUND);
-		}
-
 		if (null != userInfoDB && userInfoDB.getStatus().equalsIgnoreCase(Constants.ACTIVE)) {
 			throw new UserException(Constants.USER_ALREADY_REGISTERED);
 		}
@@ -111,23 +115,24 @@ public class UserManagementService {
 //			log.info(Constants.USER_PASSCODE_FOR_USER_REGISTRATION_SAVED_SUCCESSFULLY);
 //		} else {
 
-			userInfo.setStatus(Constants.ACTIVE);
-			userInfo.setRole(role);
-			String password = passwordEncoder.encode(userInfo.getPassword());
-			userInfo.setPassword(password);
-			Date createdOn = new Date();
-			if (userInfo.getTncAccepted() != null && userInfo.getTncAccepted()) {
-				userInfo.setTncTimestamp(createdOn);
-			} else {
-				throw new UserException(Constants.TERMS_AND_CONDITIONS_NOT_ACCEPTED);
-			}
-			userInfo.setCreatedOn(createdOn);
-			userInfo.setCreatedBy(userEmailId);
-			userInfo.setUpdatedOn(createdOn);
-			userInfo.setUpdatedBy(userEmailId);
+		userInfo.setStatus(Constants.ACTIVE);
 
-			userInfo = userInfoRepository.save(userInfo);
-			log.info(Constants.USER_REGISTERED_SUCCESSFULLY);
+		String password = passwordEncoder.encode(userInfo.getPassword());
+		userInfo.setPassword(password);
+		Date createdOn = new Date();
+
+		if (userInfo.getTncAccepted() != null && userInfo.getTncAccepted()) {
+			userInfo.setTncTimestamp(createdOn);
+		} else {
+			throw new UserException(Constants.TERMS_AND_CONDITIONS_NOT_ACCEPTED);
+		}
+		userInfo.setCreatedOn(createdOn);
+		userInfo.setCreatedBy(userEmailId);
+		userInfo.setUpdatedOn(createdOn);
+		userInfo.setUpdatedBy(userEmailId);
+
+		userInfo = userInfoRepository.save(userInfo);
+		log.info(Constants.USER_REGISTERED_SUCCESSFULLY);
 
 //			UserPasscode userPasscode = new UserPasscode();
 //			Calendar calendar = Calendar.getInstance();
@@ -144,7 +149,6 @@ public class UserManagementService {
 
 		return userInfo;
 	}
-
 
 	public UserInfo storeUserAppDeviceToken(String token, long userId, String loginType) throws UserException {
 		Optional<UserInfo> optional = userInfoRepository.findById(userId);
@@ -176,4 +180,5 @@ public class UserManagementService {
 		UserInfo userExists = userInfoRepository.findByEmailIdAndStatus(userEmailId, Constants.INACTIVE);
 		return (userExists == null ? false : true);
 	}
+
 }

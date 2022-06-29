@@ -1,0 +1,255 @@
+{
+	"info": {
+		"_postman_id": "ab83f4f1-d054-4157-bf22-b367fb6bd547",
+		"name": "Truck_Tracker",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "18945459"
+	},
+	"item": [
+		{
+			"name": "Registration",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"firstName\":\"s\",\n    \"lastName\":\"v\",\n    \"emailId\":\"akasThgh@gmail.com\",\n    \"password\":\"Qwerty@123\",\n    \"tncAccepted\":true,\n    \"registrationType\":\"USER\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": "http://localhost:8585/api/v1/tracker/register"
+			},
+			"response": []
+		},
+		{
+			"name": "token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"postman.setEnvironmentVariable(\"access_token\", jsonData.access_token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": {
+						"password": "{{client_secret}}",
+						"username": "{{client_id}}"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/tracker/oauth/token?grant_type=password&username=tarangg@driven-4.com&password=Qwert@123",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"tracker",
+						"oauth",
+						"token"
+					],
+					"query": [
+						{
+							"key": "grant_type",
+							"value": "password"
+						},
+						{
+							"key": "username",
+							"value": "tarangg@driven-4.com"
+						},
+						{
+							"key": "password",
+							"value": "Qwert@123"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Vehicle Info",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{access_token}}"
+					}
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "loginType",
+						"value": "user",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": "http://localhost:8080/api/v1/tracker/truck/admin/getVehicleInfo"
+			},
+			"response": []
+		},
+		{
+			"name": "Add Vehicle Info",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{access_token}}"
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "loginType",
+						"value": "user",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"truckNumber\":\"MH14MB3160\",\n    \"entryDate\":\"2022-05-13T13:00:00\",\n    \"grNumber\":1,\n    \"tokenNumber\":-1,\n    \"rate\":100,\n    \"grossWeight\":100,\n    \"advanceCash\":\"1000\",\n    \"advanceDiesel\":\"2000\"\n}"
+				},
+				"url": "http://localhost:8081/api/v1/tracker/truck/user/addVehicleInfo"
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Truck",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{access_token}}"
+					}
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"karishma\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8081/api/v1/tracker/truck/admin/delete?truckId=110",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8081",
+					"path": [
+						"api",
+						"v1",
+						"tracker",
+						"truck",
+						"admin",
+						"delete"
+					],
+					"query": [
+						{
+							"key": "truckId",
+							"value": "110"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "EditVehicle Info",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": {
+						"token": "{{access_token}}"
+					}
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "loginType",
+						"value": "user",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"truckNumber\":\"MH14MB0554\",\n    \"entryDate\":\"2022-06-13T13:00:00\",\n    \"grNumber\":1,\n    \"tokenNumber\":2,\n    \"rate\":10,\n    \"grossWeight\":100,\n    \"advanceCash\":\"50\",\n    \"advanceDiesel\":\"50\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/tracker/truck/admin/edit?truckId=114",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"tracker",
+						"truck",
+						"admin",
+						"edit"
+					],
+					"query": [
+						{
+							"key": "truckId",
+							"value": "114"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
